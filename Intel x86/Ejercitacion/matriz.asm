@@ -2,7 +2,6 @@
 ; Dada una matriz de 5x5, calcular si es triangular superior       #
 ;###################################################################
 
-
 global main
 extern puts
 extern printf
@@ -29,9 +28,7 @@ section .data
 	filaActual dq 1
 
 
-
 section .text
-
 
 main:
 
@@ -39,11 +36,8 @@ main:
 
 esTriangularSuperior:
 	
-
 	mov rax, 5
 	sub rax, qword[filaActual]
-
-
 	mov qword[iteracionesColumna], rax
 
 moverColumna:
@@ -59,43 +53,41 @@ moverColumna:
 	imul	rax,2	
 	add		rbx,rax				
 
-	mov ax, word[matriz + rbx]
+	mov 	ax, word[matriz + rbx]
 	cwde
 	cdqe
 
+	cmp 	rax, 0
+	jne 	noEsTriangular
 
-	cmp rax, 0
-	jne noEsTriangular
-
-	dec qword[iteracionesColumna]
-	add qword[columna], 1
+	dec 	qword[iteracionesColumna]
+	add 	qword[columna], 1
 	
-	cmp qword[iteracionesColumna], 0
-	jg moverColumna 
+	cmp 	qword[iteracionesColumna], 0
+	jg 		moverColumna 
 
 
-	mov rax, qword[columnaActual]
-	inc rax
-	mov qword[columna], rax
+	mov 	rax, qword[columnaActual]
+	inc 	rax
+	mov 	qword[columna], rax
 
-	inc qword[filaActual]
-	inc qword[fila]
-	dec qword[iteracionesFila]
+	inc 	qword[filaActual]
+	inc 	qword[fila]
+	dec 	qword[iteracionesFila]
 	
-	cmp qword[iteracionesFila], 0
-	jg esTriangularSuperior
+	cmp 	qword[iteracionesFila], 0
+	jg 		esTriangularSuperior
 
-	jmp endProg
+	jmp 	endProg
 
 noEsTriangular:
 
-	mov rdi, msjNoEsTriangular
-	call puts
+	mov 	rdi, msjNoEsTriangular
+	call 	puts
 
 endProg:
 
-	add rsp, 8
-
+	add 	rsp, 8
 	ret
 
 

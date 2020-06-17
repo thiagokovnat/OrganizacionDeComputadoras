@@ -32,3 +32,30 @@ section .text
 main:
 
 
+
+
+
+
+getElemento:										; Dada una fila y una columna, devuelve el elemento almacenado en la matriz en dicha fila y columna.
+		
+
+	mov rax, [fila]
+	dec rax
+	imul rax, qword[longFila]
+
+	mov rbx, rax
+
+	mov rax, [columna]
+	dec rax
+	imul rax, 2
+
+	add rbx, rax
+
+	mov ax, [matriz + rbx]
+	cwde
+	cdqe
+
+	mov qword[elemento], rax
+	ret
+
+
