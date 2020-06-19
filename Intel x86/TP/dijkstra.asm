@@ -12,7 +12,7 @@ section .data
 
     ; RELACIONADAS A LA MATRIZ 
 
-	SPT             dw 1,0,0
+	SPT             dq 1,0,2
 
 	matrizAdy       dq 0,1,5   ;uso una Matriz Adyacencia ejemplo
 					dq 1,0,1
@@ -30,6 +30,10 @@ section .data
 	cantVertices    dq 3
 
 	nodoMinimo      dq 0
+
+	nodoInicial     dq 1
+
+	nodoFin         dq 3
 
 
 
@@ -50,7 +54,11 @@ section .data
 
 	msjDebug dw "FFFFFFFFFFFFF", 0
 
+	minimoActual dq 0
+
 section .bss
+
+	estaPresente resb 1
 
 
 section .text
@@ -70,9 +78,17 @@ DIJKSTRA:
 	
 	call inicializarMatriz
 
-	;call getNodoMinimo
+	call getNodoMinimo
 
-	call imprimirMatriz
+	mov rax, 0
+	mov rdi, msjPrintf
+	mov rsi, qword[nodoMinimo]
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+
+	;call imprimirMatriz
 
 	ret
 
@@ -88,6 +104,7 @@ loopImprimir:
 	
 	cmp qword[fila], 3
 	jg finImprimir
+
 
 	mov rax, qword[fila]
 	dec rax
@@ -119,11 +136,105 @@ finImprimir:
 	ret
 
 
-getNodoMinimo:
+getNodoMinimo:														; Deja en la variable nodoMinimo la fila donde se encuentra el nodo de menor valor actualmente.
+
+	mov qword[fila], 1
+	mov qword[columna], 1
+	mov qword[minimoActual], 60000
+
+loopNodoMinimo:
+
+	cmp qword[fila], 3
+	jg finNodoMinimo
+
+	mov rax, qword[nodoInicial]										; No comparo el nodo del cual parti, ya que su distancia siempre es 0 y quedaria como el nodo minimo.
+	cmp qword[fila], rax
+	je incrementFilaNodoMin
+
+	mov rax, qword[fila]
+	dec rax
+	imul rax, 16
+
+	mov rbx, rax
+
+	mov rax, qword[columna]
+	dec rax
+	imul rax, 8
+
+	add rbx, rax
+
+	mov rax, qword[matrizCaminoMinimo + rbx]
+
+	cmp rax, qword[minimoActual]
+	jl nuevoMinimo
+
+incrementFilaNodoMin:
+
+	inc qword[fila]
+	jmp loopNodoMinimo
+
+
+finNodoMinimo:
+
+	ret
+
+
+nuevoMinimo:
+
+	push qword[fila]
+	push rax
+
+	call comprobarSiNodoYaEstaPresente
+
+	pop rax
+	pop qword[fila]
+
+	cmp byte[estaPresente], "S"
+	je incrementFilaNodoMin
+
+	mov qword[minimoActual], rax
+
+	mov rax, qword[fila]
+	mov qword[nodoMinimo], rax
+	jmp incrementFilaNodoMin
 
 
 
-inicializarMatriz:
+comprobarSiNodoYaEstaPresente:								; Deja en una variable estaPresente si el nodo ya se encuentra en el SPT
+
+	mov rbx, qword[fila]
+	mov qword[fila], 1
+
+loopComprobarPresente:
+
+	mov rax, qword[fila]
+	dec rax
+	imul rax, 8
+
+	cmp rbx, qword[SPT + rax]
+	je nodoPresente
+
+	inc qword[fila]
+	cmp qword[fila], 3
+	jle loopComprobarPresente
+
+	mov byte[estaPresente], "N"
+
+finComprobar:
+
+	ret
+
+
+nodoPresente:
+	
+	mov byte[estaPresente], "S"
+	jmp finComprobar
+
+
+
+
+
+inicializarMatriz:							; Inicializa la matriz de camino minimo utilizada.
 
 	mov qword[fila], 1
 	mov qword[columna], 2
