@@ -1,5 +1,5 @@
 ;**************************************************************
-; ALGORITMO DE DIJKSTRA DISTANCIA MINIMA A TODOS LOS VERTICES *
+; ALGORITMO DE DIJKSTRA CAMINO MINIMO ENTRE DOS VERTICES      *
 ; Thiago Kovnat, Primer Cuatrimestre 2020 Orga 9557           *
 ;**************************************************************
 
@@ -12,11 +12,11 @@ section .data
 
     ; RELACIONADAS A LA MATRIZ 
 
-	SPT             dq 1,0,2
+	SPT             dq 1,0,0
 
-	matrizAdy       dq 0,1,5   ;uso una Matriz Adyacencia ejemplo
-					dq 1,0,1
-					dq 5,1,0
+	matrizAdy       dq 0,7,1   ;uso una Matriz Adyacencia ejemplo
+					dq 7,0,2
+					dq 2,2,0
 
 	matrizCaminoMinimo dq 0,1
 					   dq 60001,2
@@ -24,16 +24,14 @@ section .data
 
 	; RELACIONADAS A LOS VERTICES
 
-	cantVerticesSPT dq 0
+	cantVerticesSPT dq 1
 	verticeInicial dq 1
 	verticeFinal    dq 3
 	cantVertices    dq 3
 
 	nodoMinimo      dq 0
-
 	nodoInicial     dq 1
-
-	nodoFin         dq 3
+	nodoFin         dq 2
 
 
 
@@ -42,8 +40,9 @@ section .data
 	fila dq 0
 	columna dq 0
 	longFila dq 24
-
 	elemento dq 0
+
+	elementoCaminoMinimo dq 0
 
 
 	; AUXILIARES
@@ -51,11 +50,10 @@ section .data
 
 	auxiliar dq 0
 	msjPrintf dw "Distancia: %i",10,0
-
 	msjDebug dw "FFFFFFFFFFFFF", 0
-
 	minimoActual dq 0
 
+	printfCamino dw "%i <- ", 0
 section .bss
 
 	estaPresente resb 1
@@ -74,69 +72,34 @@ main:
 	ret
 
 DIJKSTRA:
-
 	
-	call inicializarMatriz
-
-	call getNodoMinimo
-
-	mov rax, 0
-	mov rdi, msjPrintf
-	mov rsi, qword[nodoMinimo]
-	sub rsp, 8
-	call printf
-	add rsp, 8
-
-
-	;call imprimirMatriz
-
-	ret
-
-imprimirMatriz:
-
-	mov qword[columna], 1
-	mov qword[fila], 1
-
-
-
-loopImprimir: 
-
 	
-	cmp qword[fila], 3
-	jg finImprimir
+	call inicializarMatriz							; Inicializo la matriz que uso para el algoritmo
 
 
-	mov rax, qword[fila]
-	dec rax
-	imul rax, 16
-
-	mov rbx, rax
-
-	mov rax, qword[columna]
-	dec rax
-	imul rax, 8
-
-	add rbx, rax
-
-	mov rdi, msjPrintf
-	mov rsi, qword[matrizCaminoMinimo + rbx]
-	mov rax, 0
-	sub rsp, 8
-	call printf
-	add rsp, 8
-
-	inc qword[fila]
-	jmp loopImprimir
+loopDIJKSTRA:
 
 
-	
+	call getNodoMinimo								; Busco el nodo con menor peso que no haya visistado
 
-finImprimir:
+	mov rax, qword[nodoFin]
+	cmp rax, qword[nodoMinimo]
+	je finDIJKSTRA									; Si el nodo minimo es mi nodo fin, llegue al fin del algoritmo
+
+	call actualizarMatriz							; Si no es mi nodo fin, actualizo la matriz tomando el minimo entre dist(u) y dist(v) + dist(u-v)
+
+
+finDIJKSTRA:
+
+
+	call imprimirCamino								; Imprimo el camino fin 
+
 
 	ret
 
 
 getNodoMinimo:														; Deja en la variable nodoMinimo la fila donde se encuentra el nodo de menor valor actualmente.
+
 
 	mov qword[fila], 1
 	mov qword[columna], 1
@@ -176,6 +139,7 @@ incrementFilaNodoMin:
 
 finNodoMinimo:
 
+
 	ret
 
 
@@ -184,14 +148,13 @@ nuevoMinimo:
 	push qword[fila]
 	push rax
 
-	call comprobarSiNodoYaEstaPresente
+	call comprobarSiNodoYaEstaPresente						; Si el nodo ya fue visitado, no lo tomo como minimo
 
 	pop rax
 	pop qword[fila]
 
 	cmp byte[estaPresente], "S"
 	je incrementFilaNodoMin
-
 	mov qword[minimoActual], rax
 
 	mov rax, qword[fila]
@@ -203,6 +166,10 @@ nuevoMinimo:
 comprobarSiNodoYaEstaPresente:								; Deja en una variable estaPresente si el nodo ya se encuentra en el SPT
 
 	mov rbx, qword[fila]
+
+
+	mov byte[estaPresente], "N"
+
 	mov qword[fila], 1
 
 loopComprobarPresente:
@@ -214,11 +181,11 @@ loopComprobarPresente:
 	cmp rbx, qword[SPT + rax]
 	je nodoPresente
 
+	mov rax, qword[cantVertices]
 	inc qword[fila]
-	cmp qword[fila], 3
+	cmp qword[fila], rax
 	jle loopComprobarPresente
 
-	mov byte[estaPresente], "N"
 
 finComprobar:
 
@@ -226,17 +193,17 @@ finComprobar:
 
 
 nodoPresente:
-	
+
+
 	mov byte[estaPresente], "S"
 	jmp finComprobar
 
 
-
-
-
 inicializarMatriz:							; Inicializa la matriz de camino minimo utilizada.
 
-	mov qword[fila], 1
+
+	mov rax, qword[nodoInicial]
+	mov qword[fila], rax
 	mov qword[columna], 2
 
 loopInicializar:
@@ -260,7 +227,8 @@ loopInicializar:
 
 	mov qword[matrizCaminoMinimo + rax], rbx
 	add rax, 8
-	mov qword[matrizCaminoMinimo + rax], 1
+	mov rbx, qword[nodoInicial]
+	mov qword[matrizCaminoMinimo + rax], rbx
 
 
 incrementColumna:
@@ -302,5 +270,185 @@ getElemento:										; Dada una fila y una columna, devuelve el elemento almace
 
 	mov qword[elemento], rax
 	ret
+
+
+
+actualizarMatriz:
+
+	mov rax, qword[nodoMinimo]
+
+	mov qword[fila], rax
+	mov qword[columna], 1
+
+loopActualizar:
+
+	mov rax, qword[columna]
+	cmp rax, qword[nodoInicial]
+	je incrementColumnaActualizar
+
+	call getElemento
+
+	call getElementoCaminoMinimo
+
+	mov rax, qword[elementoCaminoMinimo]
+	mov qword[auxiliar], rax
+
+	push qword[columna]
+	mov rax, qword[fila]
+
+	mov qword[columna], rax
+
+	call getElementoCaminoMinimo
+
+	pop qword[columna]
+
+	mov rax, qword[elementoCaminoMinimo]
+	add rax, qword[elemento]                            ; dist[v] + edge(u-v) 
+
+	cmp rax, qword[auxiliar]                            ; if dist(u) > dist[v] + edge(u-v) then dist(u) = dist(v) + edge(u-v)
+	jl placeElemento
+
+
+incrementColumnaActualizar:
+
+	inc qword[columna]
+
+	mov rbx, qword[cantVertices]
+	cmp qword[columna], rbx
+	jg finActualizar
+
+	jmp loopActualizar
+
+
+finActualizar:
+
+	inc qword[cantVerticesSPT]
+
+	mov rax, qword[cantVerticesSPT]
+	dec rax
+	imul rax, 8
+
+	mov rbx, rax
+
+	mov rax, qword[nodoMinimo]
+
+	mov qword[SPT + rbx], rax
+
+	ret
+
+
+placeElemento:
+
+	mov rbx, qword[columna]
+	dec rbx
+	imul rbx, 16
+
+	mov qword[matrizCaminoMinimo + rbx], rax
+
+	add rbx, 8                                ; me desplazo a la columna "FROM"
+
+	mov rax, qword[nodoMinimo]
+
+	mov qword[matrizCaminoMinimo + rbx], rax
+
+	jmp incrementColumnaActualizar
+
+
+getElementoCaminoMinimo:
+
+	
+	mov rax, qword[columna]                     ; Por como esta hecha esta matriz, la columna de la matriz de adyacencia es la fila de la matriz de camino minimo
+	dec rax
+	imul rax, 16
+
+	mov rbx, rax
+
+	mov rax, 1                                  ; Siempre quiero el elemento de mi primera columna
+	dec rax
+	imul rax, 8
+
+	add rbx, rax
+
+	mov rax, qword[matrizCaminoMinimo + rbx]
+
+	mov qword[elementoCaminoMinimo], rax
+
+	ret
+
+
+
+
+printDebug:
+
+ 	mov qword[columna], 1
+
+loopDebug:
+
+ 	mov rax, qword[columna]
+ 	dec	rax
+ 	imul rax, 8
+
+ 	mov rdi, msjPrintf
+ 	mov rsi, [SPT + rax]
+ 	sub rsp, 8
+ 	call printf
+ 	add rsp, 8
+
+ 	inc qword[columna]
+
+ 	cmp qword[columna], 3
+ 	jg finDebug
+
+ 	jmp loopDebug
+
+
+ finDebug:
+
+ 	ret
+
+
+imprimirCamino:
+
+
+
+	mov rdi, printfCamino
+	mov rsi, qword[nodoFin]
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+
+	mov rax, qword[nodoFin]
+	dec rax
+	imul rax, 16
+
+	mov rbx, rax
+
+	mov rax, 1
+	imul rax, 8
+
+	add rbx, rax
+
+	mov rax, qword[matrizCaminoMinimo + rbx]
+
+	cmp rax, qword[nodoInicial]
+	je finMostrarCamino
+
+	mov qword[nodoFin], rax
+	jmp imprimirCamino
+
+finMostrarCamino:
+
+	mov rdi, printfCamino
+	mov rsi, qword[nodoInicial]
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+	ret
+
+
+
+
 
 
