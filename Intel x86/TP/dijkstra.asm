@@ -12,26 +12,30 @@ section .data
 
     ; RELACIONADAS A LA MATRIZ 
 
-	SPT             dq 2,0,0
+	SPT             dq 5,0,0,0,0
 
-	matrizAdy       dq 0,7,1   ;uso una Matriz Adyacencia ejemplo
-					dq 7,0,2
-					dq 2,2,0
+	matrizAdy       dq 0,2,4,4,0
+					dq 2,0,1,3,9
+					dq 4,1,0,3,2
+					dq 4,3,3,0,3
+					dq 0,9,2,3,0
 
 	matrizCaminoMinimo dq 0,1
 					   dq 60001,2
 					   dq 60000,3
+					   dq 60000,3
+					   dq 60000, 4
 
 	; RELACIONADAS A LOS VERTICES
 
 	cantVerticesSPT dq 1
 	verticeInicial dq 1
 	verticeFinal    dq 3
-	cantVertices    dq 3
+	cantVertices    dq 5
 
 	nodoMinimo      dq 0
-	nodoInicial     dq 2
-	nodoFin         dq 3
+	nodoInicial     dq 5
+	nodoFin         dq 1
 
 
 
@@ -39,7 +43,7 @@ section .data
 
 	fila dq 0
 	columna dq 0
-	longFila dq 24
+	longFila dq 40
 	elemento dq 0
 
 	elementoCaminoMinimo dq 0
@@ -49,8 +53,8 @@ section .data
 
 
 	auxiliar dq 0
-	msjPrintf dw "Distancia: %i",10,0
-	msjDebug dw "FFFFFFFFFFFFF", 0
+	msjPrintf dw "Distancia: %i",13,0
+	msjDebug dw " FFFFFFFFFFFFF", 0
 	minimoActual dq 0
 
 	printfCamino dw "%i <- ", 0
@@ -87,14 +91,13 @@ loopDIJKSTRA:
 	je finDIJKSTRA									; Si el nodo minimo es mi nodo fin, llegue al fin del algoritmo
 
 	call actualizarMatriz							; Si no es mi nodo fin, actualizo la matriz tomando el minimo entre dist(u) y dist(v) + dist(u-v)
-
+	
+	jmp loopDIJKSTRA
 
 finDIJKSTRA:
 
 
 	call imprimirCamino								; Imprimo el camino fin 
-
-	;call imprimirMatriz
 
 	ret
 
@@ -102,7 +105,7 @@ finDIJKSTRA:
 
 imprimirMatriz:
 
-	mov qword[columna], 2
+	mov qword[columna], 1
 	mov qword[fila], 1
 
 
@@ -110,7 +113,7 @@ imprimirMatriz:
 loopImprimir: 
 
 	
-	cmp qword[fila], 3
+	cmp qword[fila], 5
 	jg finImprimir
 
 
@@ -153,7 +156,7 @@ getNodoMinimo:														; Deja en la variable nodoMinimo la fila donde se en
 
 loopNodoMinimo:
 
-	cmp qword[fila], 3
+	cmp qword[fila], 5
 	jg finNodoMinimo
 
 	mov rax, qword[nodoInicial]										; No comparo el nodo del cual parti, ya que su distancia siempre es 0 y quedaria como el nodo minimo.
@@ -305,13 +308,13 @@ finInicializar:
 getElemento:										; Dada una fila y una columna, devuelve el elemento almacenado en la matriz en dicha fila y columna.
 		
 
-	mov rax, [fila]
+	mov rax, qword[fila]
 	dec rax
 	imul rax, qword[longFila]
 
 	mov rbx, rax
 
-	mov rax, [columna]
+	mov rax, qword[columna]
 	dec rax
 	imul rax, 8
 
@@ -334,11 +337,14 @@ actualizarMatriz:
 
 loopActualizar:
 
+	
+	call getElemento
+
 	mov rax, qword[columna]
-	cmp rax, qword[nodoInicial]
+	cmp rax, qword[nodoMinimo]
 	je incrementColumnaActualizar
 
-	call getElemento
+
 
 	call getElementoCaminoMinimo
 
@@ -356,7 +362,13 @@ loopActualizar:
 
 	mov rax, qword[elementoCaminoMinimo]
 	add rax, qword[elemento]                            ; dist[v] + edge(u-v) 
+	mov qword[elemento], rax
+	push rax
 
+	mov rax, 0
+
+
+	pop rax
 	cmp rax, qword[auxiliar]                            ; if dist(u) > dist[v] + edge(u-v) then dist(u) = dist(v) + edge(u-v)
 	jl placeElemento
 
