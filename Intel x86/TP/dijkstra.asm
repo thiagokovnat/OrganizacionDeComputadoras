@@ -12,7 +12,7 @@ section .data
 
     ; RELACIONADAS A LA MATRIZ 
 
-	SPT             dq 1,0,0
+	SPT             dq 2,0,0
 
 	matrizAdy       dq 0,7,1   ;uso una Matriz Adyacencia ejemplo
 					dq 7,0,2
@@ -30,8 +30,8 @@ section .data
 	cantVertices    dq 3
 
 	nodoMinimo      dq 0
-	nodoInicial     dq 1
-	nodoFin         dq 2
+	nodoInicial     dq 2
+	nodoFin         dq 3
 
 
 
@@ -94,6 +94,52 @@ finDIJKSTRA:
 
 	call imprimirCamino								; Imprimo el camino fin 
 
+	;call imprimirMatriz
+
+	ret
+
+
+
+imprimirMatriz:
+
+	mov qword[columna], 2
+	mov qword[fila], 1
+
+
+
+loopImprimir: 
+
+	
+	cmp qword[fila], 3
+	jg finImprimir
+
+
+	mov rax, qword[fila]
+	dec rax
+	imul rax, 16
+
+	mov rbx, rax
+
+	mov rax, qword[columna]
+	dec rax
+	imul rax, 8
+
+	add rbx, rax
+
+	mov rdi, msjPrintf
+	mov rsi, qword[matrizCaminoMinimo + rbx] 
+	mov rax, 0
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+	inc qword[fila]
+	jmp loopImprimir
+
+
+	
+
+finImprimir:
 
 	ret
 
@@ -131,6 +177,9 @@ loopNodoMinimo:
 	cmp rax, qword[minimoActual]
 	jl nuevoMinimo
 
+presenteIncrement:
+
+
 incrementFilaNodoMin:
 
 	inc qword[fila]
@@ -148,13 +197,13 @@ nuevoMinimo:
 	push qword[fila]
 	push rax
 
-	call comprobarSiNodoYaEstaPresente						; Si el nodo ya fue visitado, no lo tomo como minimo
+	call comprobarSiNodoYaEstaPresente
 
 	pop rax
 	pop qword[fila]
 
 	cmp byte[estaPresente], "S"
-	je incrementFilaNodoMin
+	je presenteIncrement
 	mov qword[minimoActual], rax
 
 	mov rax, qword[fila]
@@ -199,12 +248,15 @@ nodoPresente:
 	jmp finComprobar
 
 
+
+
+
 inicializarMatriz:							; Inicializa la matriz de camino minimo utilizada.
 
 
 	mov rax, qword[nodoInicial]
 	mov qword[fila], rax
-	mov qword[columna], 2
+	mov qword[columna], 1
 
 loopInicializar:
 
@@ -352,6 +404,14 @@ placeElemento:
 	mov qword[matrizCaminoMinimo + rbx], rax
 
 	jmp incrementColumnaActualizar
+
+
+
+
+
+
+
+
 
 
 getElementoCaminoMinimo:
