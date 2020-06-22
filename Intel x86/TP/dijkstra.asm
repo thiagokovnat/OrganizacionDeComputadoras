@@ -12,30 +12,38 @@ section .data
 
     ; RELACIONADAS A LA MATRIZ 
 
-	SPT             dq 5,0,0,0,0
+	SPT             dq 1,0,0,0,0,0,0,0,0,0
 
-	matrizAdy       dq 0,2,4,4,0
-					dq 2,0,1,3,9
-					dq 4,1,0,3,2
-					dq 4,3,3,0,3
-					dq 0,9,2,3,0
+	matrizAdy       dq 0,5,3,4,0,0,0,0,0,0
+					dq 5,0,2,0,0,0,1,0,0,0
+					dq 3,2,0,3,0,1,1,0,0,0
+					dq 4,0,3,0,0,0,0,0,0,0
+					dq 0,0,0,0,0,6,0,7,1,0
+					dq 0,0,1,0,6,0,3,2,0,0
+					dq 0,1,1,0,0,3,0,7,0,0
+					dq 0,0,0,0,7,2,7,0,2,4
+					dq 0,0,0,0,1,0,0,2,0,0
+					dq 0,0,0,0,0,0,0,4,0,0
 
 	matrizCaminoMinimo dq 0,1
 					   dq 60001,2
 					   dq 60000,3
 					   dq 60000,3
-					   dq 60000, 4
+					   dq 60000,4
+					   dq 60000,4
+					   dq 60000,7
+					   dq 60000,8
+					   dq 60000,9
+					   dq 60000,10
 
 	; RELACIONADAS A LOS VERTICES
 
 	cantVerticesSPT dq 1
-	verticeInicial dq 1
-	verticeFinal    dq 3
-	cantVertices    dq 5
+	cantVertices    dq 10
 
 	nodoMinimo      dq 0
-	nodoInicial     dq 5
-	nodoFin         dq 1
+	nodoInicial     dq 1
+	nodoFin         dq 10
 
 
 
@@ -43,7 +51,7 @@ section .data
 
 	fila dq 0
 	columna dq 0
-	longFila dq 40
+	longFila dq 80
 	elemento dq 0
 
 	elementoCaminoMinimo dq 0
@@ -58,6 +66,11 @@ section .data
 	minimoActual dq 0
 
 	printfCamino dw "%i <- ", 0
+
+	printIn dw "IN",10,0
+
+	printMsjCamino dw "Camino minimo desde %hi a %hi:",10,0
+
 section .bss
 
 	estaPresente resb 1
@@ -98,7 +111,7 @@ finDIJKSTRA:
 
 
 	call imprimirCamino								; Imprimo el camino fin 
-
+	;call imprimirMatriz
 	ret
 
 
@@ -113,7 +126,7 @@ imprimirMatriz:
 loopImprimir: 
 
 	
-	cmp qword[fila], 5
+	cmp qword[fila], 10
 	jg finImprimir
 
 
@@ -156,7 +169,7 @@ getNodoMinimo:														; Deja en la variable nodoMinimo la fila donde se en
 
 loopNodoMinimo:
 
-	cmp qword[fila], 5
+	cmp qword[fila], 10
 	jg finNodoMinimo
 
 	mov rax, qword[nodoInicial]										; No comparo el nodo del cual parti, ya que su distancia siempre es 0 y quedaria como el nodo minimo.
@@ -179,9 +192,6 @@ loopNodoMinimo:
 
 	cmp rax, qword[minimoActual]
 	jl nuevoMinimo
-
-presenteIncrement:
-
 
 incrementFilaNodoMin:
 
@@ -206,7 +216,7 @@ nuevoMinimo:
 	pop qword[fila]
 
 	cmp byte[estaPresente], "S"
-	je presenteIncrement
+	je incrementFilaNodoMin
 	mov qword[minimoActual], rax
 
 	mov rax, qword[fila]
@@ -218,7 +228,6 @@ nuevoMinimo:
 comprobarSiNodoYaEstaPresente:								; Deja en una variable estaPresente si el nodo ya se encuentra en el SPT
 
 	mov rbx, qword[fila]
-
 
 	mov byte[estaPresente], "N"
 
@@ -249,9 +258,6 @@ nodoPresente:
 
 	mov byte[estaPresente], "S"
 	jmp finComprobar
-
-
-
 
 
 inicializarMatriz:							; Inicializa la matriz de camino minimo utilizada.
@@ -294,7 +300,6 @@ incrementColumna:
 
 putInfinito:
 
-
 	mov qword[matrizCaminoMinimo + rax], 60000
 	add rax, 8
 	mov qword[matrizCaminoMinimo + rax], 1
@@ -307,7 +312,6 @@ finInicializar:
 
 getElemento:										; Dada una fila y una columna, devuelve el elemento almacenado en la matriz en dicha fila y columna.
 		
-
 	mov rax, qword[fila]
 	dec rax
 	imul rax, qword[longFila]
@@ -327,7 +331,6 @@ getElemento:										; Dada una fila y una columna, devuelve el elemento almace
 	ret
 
 
-
 actualizarMatriz:
 
 	mov rax, qword[nodoMinimo]
@@ -336,15 +339,15 @@ actualizarMatriz:
 	mov qword[columna], 1
 
 loopActualizar:
-
 	
 	call getElemento
+
+	cmp qword[elemento], 0
+	je incrementColumnaActualizar
 
 	mov rax, qword[columna]
 	cmp rax, qword[nodoMinimo]
 	je incrementColumnaActualizar
-
-
 
 	call getElementoCaminoMinimo
 
@@ -367,11 +370,9 @@ loopActualizar:
 
 	mov rax, 0
 
-
 	pop rax
 	cmp rax, qword[auxiliar]                            ; if dist(u) > dist[v] + edge(u-v) then dist(u) = dist(v) + edge(u-v)
 	jl placeElemento
-
 
 incrementColumnaActualizar:
 
@@ -382,7 +383,6 @@ incrementColumnaActualizar:
 	jg finActualizar
 
 	jmp loopActualizar
-
 
 finActualizar:
 
@@ -400,7 +400,6 @@ finActualizar:
 
 	ret
 
-
 placeElemento:
 
 	mov rbx, qword[columna]
@@ -416,15 +415,6 @@ placeElemento:
 	mov qword[matrizCaminoMinimo + rbx], rax
 
 	jmp incrementColumnaActualizar
-
-
-
-
-
-
-
-
-
 
 getElementoCaminoMinimo:
 
@@ -446,9 +436,6 @@ getElementoCaminoMinimo:
 	mov qword[elementoCaminoMinimo], rax
 
 	ret
-
-
-
 
 printDebug:
 
@@ -480,15 +467,22 @@ loopDebug:
 
 
 imprimirCamino:
+	
+	mov rax, 0
+	mov rdi, printMsjCamino
+	mov rsi, qword[nodoInicial]
+	mov rdx, qword[nodoFin]
+	sub rsp, 8
+	call printf
+	add rsp, 8
 
-
+loopCamino:
 
 	mov rdi, printfCamino
 	mov rsi, qword[nodoFin]
 	sub rsp, 8
 	call printf
 	add rsp, 8
-
 
 	mov rax, qword[nodoFin]
 	dec rax
@@ -507,7 +501,7 @@ imprimirCamino:
 	je finMostrarCamino
 
 	mov qword[nodoFin], rax
-	jmp imprimirCamino
+	jmp loopCamino
 
 finMostrarCamino:
 
@@ -517,10 +511,9 @@ finMostrarCamino:
 	call printf
 	add rsp, 8
 
+	mov rdi, printIn
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
 	ret
-
-
-
-
-
-
