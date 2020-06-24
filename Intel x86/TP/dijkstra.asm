@@ -5,75 +5,62 @@
 
 global main
 extern printf
+extern gets
+extern sscanf
+
 
 
 section .data
 
 
-    ; RELACIONADAS A LA MATRIZ 
+; ########## RELACIONADAS A LA MATRIZ  ########## 
 
-	SPT             dq 1,0,0,0,0,0,0,0,0,0
+	SPT             times 20 dq 0
 
-	matrizAdy       dq 0,5,3,4,0,0,0,0,0,0
-					dq 5,0,2,0,0,0,1,0,0,0
-					dq 3,2,0,3,0,1,1,0,0,0
-					dq 4,0,3,0,0,0,0,0,0,0
-					dq 0,0,0,0,0,6,0,7,1,0
-					dq 0,0,1,0,6,0,3,2,0,0
-					dq 0,1,1,0,0,3,0,7,0,0
-					dq 0,0,0,0,7,2,7,0,2,4
-					dq 0,0,0,0,1,0,0,2,0,0
-					dq 0,0,0,0,0,0,0,4,0,0
+	matrizAdy       times 400 dq 0
 
-	matrizCaminoMinimo dq 0,1
-					   dq 60001,2
-					   dq 60000,3
-					   dq 60000,3
-					   dq 60000,4
-					   dq 60000,4
-					   dq 60000,7
-					   dq 60000,8
-					   dq 60000,9
-					   dq 60000,10
+	matrizCaminoMinimo times 40 dq 0
 
-	; RELACIONADAS A LOS VERTICES
+; ##########  RELACIONADAS A LOS VERTICES ########## 
 
 	cantVerticesSPT dq 1
 	cantVertices    dq 10
-
 	nodoMinimo      dq 0
 	nodoInicial     dq 1
 	nodoFin         dq 10
 
-
-
-	; FILAS / COLUMNAS
+; ########## FILAS / COLUMNAS ########## 
 
 	fila dq 0
 	columna dq 0
-	longFila dq 80
+	longFila dq 160
 	elemento dq 0
-
 	elementoCaminoMinimo dq 0
 
-
-	; AUXILIARES
+; ########## AUXILIARES ########## 
 
 
 	auxiliar dq 0
-	msjPrintf dw "Distancia: %i",13,0
-	msjDebug dw " FFFFFFFFFFFFF", 0
 	minimoActual dq 0
+	formatoScanf dw "%i"
 
+; ########## MENSAJES PARA PRINTF ########## 
+	msjPrintf dw "Distancia: %hi",10,0
 	printfCamino dw "%i <- ", 0
-
 	printIn dw "IN",10,0
-
 	printMsjCamino dw "Camino minimo desde %hi a %hi:",10,0
+	msjIngresoVertices dw "Ingrese la cantidad de vertices:",10,0
+	msjIngresoPeso dw "Ingrese un peso para la fila %hi y columna %hi :",10,0
+	msjNodoInicial dw "Ingrese el nodo inicial: ",10,0
+	msjNodoFin     dw "Ingrese el nodo fin: ",10,0
 
 section .bss
 
 	estaPresente resb 1
+	buffer resq 1
+	plusRsp resq 1
+
+	
 
 
 section .text
@@ -82,11 +69,14 @@ section .text
 main:
 
 
+	call ingresarMatriz
+	call ingresarNodosLimite
 	call DIJKSTRA
 
-
-
 	ret
+
+
+; ########## RUTINAS INTERNAS ########## 
 
 DIJKSTRA:
 	
@@ -111,56 +101,14 @@ finDIJKSTRA:
 
 
 	call imprimirCamino								; Imprimo el camino fin 
+
 	;call imprimirMatriz
 	ret
 
 
+; ########## getNodoMinimo Busca en la matriz de camino minimo el nodo con menor peso que no haya sido visitado ########## 
 
-imprimirMatriz:
-
-	mov qword[columna], 1
-	mov qword[fila], 1
-
-
-
-loopImprimir: 
-
-	
-	cmp qword[fila], 10
-	jg finImprimir
-
-
-	mov rax, qword[fila]
-	dec rax
-	imul rax, 16
-
-	mov rbx, rax
-
-	mov rax, qword[columna]
-	dec rax
-	imul rax, 8
-
-	add rbx, rax
-
-	mov rdi, msjPrintf
-	mov rsi, qword[matrizCaminoMinimo + rbx] 
-	mov rax, 0
-	sub rsp, 8
-	call printf
-	add rsp, 8
-
-	inc qword[fila]
-	jmp loopImprimir
-
-
-	
-
-finImprimir:
-
-	ret
-
-
-getNodoMinimo:														; Deja en la variable nodoMinimo la fila donde se encuentra el nodo de menor valor actualmente.
+getNodoMinimo:										
 
 
 	mov qword[fila], 1
@@ -169,7 +117,8 @@ getNodoMinimo:														; Deja en la variable nodoMinimo la fila donde se en
 
 loopNodoMinimo:
 
-	cmp qword[fila], 10
+	mov rax, qword[cantVertices]
+	cmp qword[fila], rax
 	jg finNodoMinimo
 
 	mov rax, qword[nodoInicial]										; No comparo el nodo del cual parti, ya que su distancia siempre es 0 y quedaria como el nodo minimo.
@@ -198,12 +147,9 @@ incrementFilaNodoMin:
 	inc qword[fila]
 	jmp loopNodoMinimo
 
-
 finNodoMinimo:
 
-
 	ret
-
 
 nuevoMinimo:
 
@@ -215,19 +161,19 @@ nuevoMinimo:
 	pop rax
 	pop qword[fila]
 
-	cmp byte[estaPresente], "S"
+	cmp byte[estaPresente], "S"                       ; Si el nodo ya fue visitado, lo descarto
 	je incrementFilaNodoMin
-	mov qword[minimoActual], rax
 
+	mov qword[minimoActual], rax					  ; Actualizo los valores minimos
 	mov rax, qword[fila]
 	mov qword[nodoMinimo], rax
 	jmp incrementFilaNodoMin
 
+; ########## comprobarSiNodoYaEstaPresente deja en una variable estaPresente S si el nodo ya fue visitado, N caso contrario ########## 
 
+comprobarSiNodoYaEstaPresente:								
 
-comprobarSiNodoYaEstaPresente:								; Deja en una variable estaPresente si el nodo ya se encuentra en el SPT
-
-	mov rbx, qword[fila]
+	mov rbx, qword[fila]                              ; Por como esta implementado, la fila tambien representa el numero que identifica al nodo
 
 	mov byte[estaPresente], "N"
 
@@ -239,7 +185,7 @@ loopComprobarPresente:
 	dec rax
 	imul rax, 8
 
-	cmp rbx, qword[SPT + rax]
+	cmp rbx, qword[SPT + rax]						  ; Si el numero que identifica a mi nodo ya esta en SPT, significa que ya lo visite
 	je nodoPresente
 
 	mov rax, qword[cantVertices]
@@ -247,25 +193,21 @@ loopComprobarPresente:
 	cmp qword[fila], rax
 	jle loopComprobarPresente
 
-
 finComprobar:
 
 	ret
 
-
 nodoPresente:
-
 
 	mov byte[estaPresente], "S"
 	jmp finComprobar
 
-
-inicializarMatriz:							; Inicializa la matriz de camino minimo utilizada.
-
+; ########## inicializarMatriz inicializa la matriz de camino minimo que se utiliza para el algortimo de DIJKSTRA ########## 
+inicializarMatriz:						
 
 	mov rax, qword[nodoInicial]
-	mov qword[fila], rax
-	mov qword[columna], 1
+	mov qword[fila], rax								; Mi fila es el numero que identifica al nodo inicial
+	mov qword[columna], 1								; El desplazamiento sera de columna, iniciando en 1, recorriendo asi las adyacencias al nodo inicial
 
 loopInicializar:
 
@@ -277,17 +219,17 @@ loopInicializar:
 	
 	mov rax, qword[columna]
 	dec rax
-	imul rax, 16
+	imul rax, 16										; Dejo en el RAX el desplazamiento para saber donde tengo que guardar el valor
 
 
-	cmp qword[elemento], 0
+	cmp qword[elemento], 0								; Si el elemento es 0, significa que no hay edge uniendolos y las distancia entre ambos se setea en infinito
 	je putInfinito
 
 	mov rbx, qword[elemento]
 
 
 	mov qword[matrizCaminoMinimo + rax], rbx
-	add rax, 8
+	add rax, 8											; Me desplazo a la columna donde almaceno desde que nodo vengo
 	mov rbx, qword[nodoInicial]
 	mov qword[matrizCaminoMinimo + rax], rbx
 
@@ -300,9 +242,11 @@ incrementColumna:
 
 putInfinito:
 
+	mov rbx, qword[nodoInicial]
+
 	mov qword[matrizCaminoMinimo + rax], 60000
 	add rax, 8
-	mov qword[matrizCaminoMinimo + rax], 1
+	mov qword[matrizCaminoMinimo + rax], rbx
 
 	jmp incrementColumna
 
@@ -310,27 +254,28 @@ finInicializar:
 
 	ret
 
-getElemento:										; Dada una fila y una columna, devuelve el elemento almacenado en la matriz en dicha fila y columna.
+
+; ########## Dada una fila y una columna, getElemento devuelve el valor contenido en la matriz de adyacencia ##########  
+getElemento:										
 		
 	mov rax, qword[fila]
 	dec rax
 	imul rax, qword[longFila]
 
-	mov rbx, rax
+	mov rbx, rax                                 ; RBX = Desplzamiento fila
 
 	mov rax, qword[columna]
 	dec rax
 	imul rax, 8
 
-	add rbx, rax
+	add rbx, rax                                 ; RBX = Desplzamiento total
 
 	mov rax, [matrizAdy + rbx]
-	
-
 	mov qword[elemento], rax
+
 	ret
 
-
+; ########## Actualiza los valores de la matriz de camino minimo siguiendo el algortimo de DIJKSTRA ########## 
 actualizarMatriz:
 
 	mov rax, qword[nodoMinimo]
@@ -342,14 +287,14 @@ loopActualizar:
 	
 	call getElemento
 
-	cmp qword[elemento], 0
+	cmp qword[elemento], 0								; Si el elemento en la matriz es 0, significa que no hay edge uniendolos, no sigo adelante
 	je incrementColumnaActualizar
 
 	mov rax, qword[columna]
-	cmp rax, qword[nodoMinimo]
+	cmp rax, qword[nodoMinimo]							; No hace falta comparar el valor en la celda ij con i = j ya que siempre sera 0
 	je incrementColumnaActualizar
 
-	call getElementoCaminoMinimo
+	call getElementoCaminoMinimo						; Busco la distancia actual para llegar al nodo que estoy analizando
 
 	mov rax, qword[elementoCaminoMinimo]
 	mov qword[auxiliar], rax
@@ -359,18 +304,14 @@ loopActualizar:
 
 	mov qword[columna], rax
 
-	call getElementoCaminoMinimo
+	call getElementoCaminoMinimo						; Busco cuanto me cuesta actualmente llegar al nodoMinimo que estoy analizando
 
 	pop qword[columna]
 
 	mov rax, qword[elementoCaminoMinimo]
 	add rax, qword[elemento]                            ; dist[v] + edge(u-v) 
 	mov qword[elemento], rax
-	push rax
 
-	mov rax, 0
-
-	pop rax
 	cmp rax, qword[auxiliar]                            ; if dist(u) > dist[v] + edge(u-v) then dist(u) = dist(v) + edge(u-v)
 	jl placeElemento
 
@@ -386,7 +327,7 @@ incrementColumnaActualizar:
 
 finActualizar:
 
-	inc qword[cantVerticesSPT]
+	inc qword[cantVerticesSPT]							
 
 	mov rax, qword[cantVerticesSPT]
 	dec rax
@@ -396,19 +337,20 @@ finActualizar:
 
 	mov rax, qword[nodoMinimo]
 
-	mov qword[SPT + rbx], rax
+	mov qword[SPT + rbx], rax						    ; Agrego el nodoMinimo actual al vector de visitados
 
 	ret
 
+; ########## Dada una fila, actualiza el valor en la matriz de camino minimo y tambien actualiza desde donde llegue a ese nodo ##########  	
 placeElemento:
 
-	mov rbx, qword[columna]
+	mov rbx, qword[columna]   
 	dec rbx
 	imul rbx, 16
 
 	mov qword[matrizCaminoMinimo + rbx], rax
 
-	add rbx, 8                                ; me desplazo a la columna "FROM"
+	add rbx, 8                                          ; me desplazo a la columna "FROM"
 
 	mov rax, qword[nodoMinimo]
 
@@ -419,13 +361,13 @@ placeElemento:
 getElementoCaminoMinimo:
 
 	
-	mov rax, qword[columna]                     ; Por como esta hecha esta matriz, la columna de la matriz de adyacencia es la fila de la matriz de camino minimo
+	mov rax, qword[columna]                             ; Por como esta hecha esta matriz, la columna de la matriz de adyacencia es la fila de la matriz de camino minimo
 	dec rax
 	imul rax, 16
 
 	mov rbx, rax
 
-	mov rax, 1                                  ; Siempre quiero el elemento de mi primera columna
+	mov rax, 1                                          ; Siempre quiero el elemento de mi primera columna
 	dec rax
 	imul rax, 8
 
@@ -437,35 +379,7 @@ getElementoCaminoMinimo:
 
 	ret
 
-printDebug:
-
- 	mov qword[columna], 1
-
-loopDebug:
-
- 	mov rax, qword[columna]
- 	dec	rax
- 	imul rax, 8
-
- 	mov rdi, msjPrintf
- 	mov rsi, [SPT + rax]
- 	sub rsp, 8
- 	call printf
- 	add rsp, 8
-
- 	inc qword[columna]
-
- 	cmp qword[columna], 3
- 	jg finDebug
-
- 	jmp loopDebug
-
-
- finDebug:
-
- 	ret
-
-
+; ########## Imprime el camino minimo desde nodoInicial hasta nodoFin ########## 
 imprimirCamino:
 	
 	mov rax, 0
@@ -516,4 +430,182 @@ finMostrarCamino:
 	call printf
 	add rsp, 8
 
+	ret
+
+; ########## Pide al usuario el ingreso de los valores de la matriz de adyacencia ########## 
+ingresarMatriz:
+
+	mov rax, 0
+	mov rdi, msjIngresoVertices
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+	mov rdi, buffer
+	sub rsp, 8
+	call gets
+	add rsp, 8
+
+	mov rdi, buffer
+	mov rsi, formatoScanf
+	mov rdx, cantVertices
+	call checkAlign
+	sub rsp, [plusRsp]
+	call sscanf
+	add rsp, [plusRsp]
+
+	cmp qword[cantVertices], 20
+	jg ingresarMatriz
+
+	cmp qword[cantVertices], 0
+	jl ingresarMatriz
+
+	mov qword[fila], 1
+
+loopFila:
+	
+	mov rax, qword[cantVertices]
+	cmp qword[fila], rax
+	jg finLoop
+
+	mov qword[columna], 1
+	call loopColumna
+
+	inc qword[fila]
+	jmp loopFila
+
+
+loopColumna:
+
+	mov rax, qword[cantVertices]
+	cmp qword[columna], rax
+	jg returnToFila
+
+	mov rax, 0
+	mov rdi, msjIngresoPeso
+	mov rsi, qword[fila]
+	mov rdx, qword[columna]
+	sub rsp, 8
+	call printf 
+	add rsp, 8
+
+	mov rdi, buffer
+	sub rsp, 8
+	call gets
+	add rsp, 8
+
+
+	mov rdi, buffer
+	mov rsi, formatoScanf
+	mov rdx, elemento
+	call checkAlign
+	sub rsp, [plusRsp]
+	call sscanf
+	add rsp, [plusRsp]
+
+	call placeElementoAdyacencia
+
+	inc qword[columna]
+	jmp loopColumna
+
+returnToFila:
+
+	ret
+
+
+finLoop:
+
+	ret
+
+; ########## Dada una fila, una columna y un elemento, coloca dicho elemento en la fila y columna indicada ########## 
+placeElementoAdyacencia:
+
+	mov rax, qword[fila]
+	dec rax
+	imul rax, qword[longFila]
+
+	mov rbx, rax
+
+	mov rax, qword[columna]
+	dec rax
+	imul rax, 8
+
+	add rbx, rax
+
+	mov rax, qword[elemento]
+	mov qword[matrizAdy + rbx], rax
+
+	ret
+
+; ########## Pide al usuario el ingreso de los nodos limites para el camino minimo ########## 
+ingresarNodosLimite:
+
+	mov rax, 0
+	mov rdi, msjNodoInicial
+	sub rsp, 8
+	call printf 
+	add rsp, 8
+
+	mov rdi, buffer
+	sub rsp, 8 
+	call gets
+	add rsp, 8
+
+	mov rdi, buffer
+	mov rsi, formatoScanf
+	mov rdx, nodoInicial
+	call checkAlign
+	sub rsp, [plusRsp]
+	call sscanf
+	add rsp, [plusRsp]
+
+	mov rax, 0
+	mov rdi, msjNodoFin
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+	mov rdi, buffer
+	sub rsp, 8 
+	call gets
+	add rsp, 8
+
+	mov rdi, buffer
+	mov rsi, formatoScanf
+	mov rdx, nodoFin
+	call checkAlign
+	sub rsp, [plusRsp]
+	call sscanf
+	add rsp, [plusRsp]
+
+	ret
+
+; ########## FUNCION CHECKALIGN, UTILIZADA PARA SSCANF ########## 
+checkAlign:
+	push rax
+	push rbx
+	push rdx
+	push rdi
+
+	mov qword[plusRsp],0
+	mov	rdx,0
+
+	mov	rax,rsp		
+	add rax,8		
+	add	rax,32	
+	
+	mov	rbx,16
+	idiv rbx			
+
+	cmp  rdx,0		
+	je	finCheckAlign
+
+	mov   qword[plusRsp],8
+
+finCheckAlign:
+	pop rdi
+	pop rdx
+
+	pop rbx
+	pop rax
 	ret
