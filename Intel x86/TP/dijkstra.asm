@@ -8,23 +8,20 @@ extern printf
 extern gets
 extern sscanf
 
-
-
 section .data
-
 
 ; ########## RELACIONADAS A LA MATRIZ  ########## 
 
 	SPT             times 20 dq 0
 
-	matrizAdy       times 400 dq 0
+	matrizAdy      	times 400 dq 0 
 
 	matrizCaminoMinimo times 40 dq 0
 
 ; ##########  RELACIONADAS A LOS VERTICES ########## 
 
 	cantVerticesSPT dq 1
-	cantVertices    dq 10
+	cantVertices    dq 20
 	nodoMinimo      dq 0
 	nodoInicial     dq 1
 	nodoFin         dq 10
@@ -39,29 +36,32 @@ section .data
 
 ; ########## AUXILIARES ########## 
 
-
 	auxiliar dq 0
 	minimoActual dq 0
 	formatoScanf dw "%i"
 
 ; ########## MENSAJES PARA PRINTF ########## 
+
 	msjPrintf dw "Distancia: %hi",10,0
 	printfCamino dw "%i <- ", 0
 	printIn dw "IN",10,0
 	printMsjCamino dw "Camino minimo desde %hi a %hi:",10,0
+
 	msjIngresoVertices dw "Ingrese la cantidad de vertices:",10,0
 	msjIngresoPeso dw "Ingrese un peso para la fila %hi y columna %hi :",10,0
 	msjNodoInicial dw "Ingrese el nodo inicial: ",10,0
 	msjNodoFin     dw "Ingrese el nodo fin: ",10,0
+
+	msjMostrarMatriz  dw "La matriz de adyacencia usada fue la siguiente: ",10,0
+	msjElementoMatriz dw "  %i  ",0
+
+	msjNewLine dw "                                                      ",10,0
 
 section .bss
 
 	estaPresente resb 1
 	buffer resq 1
 	plusRsp resq 1
-
-	
-
 
 section .text
 
@@ -101,8 +101,8 @@ finDIJKSTRA:
 
 
 	call imprimirCamino								; Imprimo el camino fin 
+	call imprimirMatriz
 
-	;call imprimirMatriz
 	ret
 
 
@@ -253,7 +253,6 @@ putInfinito:
 finInicializar:
 
 	ret
-
 
 ; ########## Dada una fila y una columna, getElemento devuelve el valor contenido en la matriz de adyacencia ##########  
 getElemento:										
@@ -577,6 +576,74 @@ ingresarNodosLimite:
 	sub rsp, [plusRsp]
 	call sscanf
 	add rsp, [plusRsp]
+
+	ret
+
+
+imprimirMatriz:
+
+	mov qword[fila],1
+
+	mov rax, 0
+	mov rdi, msjMostrarMatriz
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+loopFilaImprimir:
+
+	mov rax, qword[cantVertices]
+	cmp qword[fila], rax
+	jg finImprimir
+
+	mov qword[columna], 1
+	call loopColumnaImprimir
+
+	mov rax, 0
+	mov rdi, msjNewLine
+	sub rsp, 8
+	call printf 
+	add rsp, 8
+
+	inc qword[fila]
+	jmp loopFilaImprimir
+
+finImprimir:
+
+	ret
+
+loopColumnaImprimir:
+
+	mov rax, qword[cantVertices]
+	cmp qword[columna], rax
+	jg finLoopColumnaImprimir
+
+	mov rax, qword[fila]
+	dec rax
+	imul rax, qword[longFila]
+
+	mov rbx, rax
+
+	mov rax, qword[columna]
+	dec rax
+	imul rax, 8
+
+	add rbx, rax
+	mov rax, qword[matrizAdy + rbx]
+
+	mov qword[elemento], rax
+
+	mov rax, 0
+	mov rdi, msjElementoMatriz
+	mov rsi, qword[elemento]
+	sub rsp, 8
+	call printf
+	add rsp, 8
+
+	inc qword[columna]
+	jmp loopColumnaImprimir
+
+finLoopColumnaImprimir:
 
 	ret
 
