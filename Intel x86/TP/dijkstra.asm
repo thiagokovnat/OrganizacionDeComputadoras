@@ -14,14 +14,28 @@ section .data
 
 	SPT             times 20 dq 0
 
-	matrizAdy      	times 400 dq 0 
+	matrizAdy      	dq 0, 35, 0, 42, 12, 3, 0, 0, 0, 0, 0, 0, 0, 11, 0 
+					dq 35, 0, 0, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 32 
+					dq 0, 0, 0, 56, 0, 0, 0, 0, 11, 11, 0, 0, 0, 0, 3 
+					dq 42, 5, 56, 0, 21, 0, 0, 0, 13, 0, 0, 0, 0, 0, 5 
+					dq 12, 0, 0, 21, 0, 1, 13, 1, 0, 0, 0, 0, 0, 0, 0 
+					dq 3, 0, 0, 0, 1, 0, 17, 0, 0, 0, 0, 0, 0, 0, 0 
+					dq 0, 0, 0, 0, 13, 17, 0, 21, 0, 0, 0, 0, 5, 0, 0 
+					dq 0, 0, 0, 0, 1, 0, 21, 0, 11, 0, 0, 13, 1, 0, 0 
+					dq 0, 0, 11, 13, 0, 0, 0, 11, 0, 23, 23, 3, 0, 0, 0 
+					dq 0, 0, 11, 0, 0, 0, 0, 0, 23, 0, 3, 0, 0, 0, 0 
+					dq 0, 0, 0, 0, 0, 0, 0, 0, 23, 3, 0, 0, 0, 0, 0 
+					dq 0, 0, 0, 0, 0, 0, 0, 13, 3, 0, 0, 0, 0, 0, 0 
+					dq 0, 0, 0, 0, 0, 0, 5, 1, 0, 0, 0, 0, 0, 0, 0 
+					dq 11, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 
+					dq 0, 32, 3, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 		
 
 	matrizCaminoMinimo times 40 dq 0
 
 ; ##########  RELACIONADAS A LOS VERTICES ########## 
 
 	cantVerticesSPT dq 1
-	cantVertices    dq 20
+	cantVertices    dq 15
 	nodoMinimo      dq 0
 	nodoInicial     dq 1
 	nodoFin         dq 10
@@ -30,7 +44,7 @@ section .data
 
 	fila dq 0
 	columna dq 0
-	longFila dq 160
+	longFila dq 120
 	elemento dq 0
 	elementoCaminoMinimo dq 0
 
@@ -69,7 +83,7 @@ section .text
 main:
 
 
-	call ingresarMatriz
+	;call ingresarMatriz
 	call ingresarNodosLimite
 	call DIJKSTRA
 

@@ -1,0 +1,27 @@
+1) ¿Que mecanisamos provee el estandar IEEE754 para el manejo de operaciones matematicas con resultado +/- infinito? De ejemplos concretos de dichas operaciones e indique cual seria la configuracion en el formato para representar dichos resultoados.
+
+    - El estandar IEEE754 provee dentro de su estandar dos patrones de bits que representan el +/- infinito. Una operacion que resultaria en un resultado infinito seria tener la operacion de suma entre el maximo normalizado y el numero 1. Lo cual resultaria, bajo los estandares de IEEE754 en un resultado de +INF. La configuracion para representar el Infinito positivo es el siguiente: 1 11111111 0000....0. -> Mantisa todas 1, y fraccionario todos 0
+
+
+2) ¿Que limitaciones plantea el modo de direccionamiento inmediato?
+
+    - El metodo de direcciamiento inmediato tiene como principal limitacion que esta limitado al uso de constantes. Es decir, en la instruccion MOV EAX, 4 el numero 4 va a ser siempre constante para todas las ejecuciones del programa y no puede cambiar bajo ningun modo en tiempo de ejecucion. Ademas, dicha constante esta limitada por el tamaño del campo de direccionamiento con el cual se esta trabajando, por lo cual no se puede utilizar cualquier valor.
+
+3) ¿Cuales son las limitaciones de la administracion de memoria por asignacion particionada en relacion al resto de los mecanismos mas avanzados?
+
+    - Depende de que tipo de asignacion particionada estamos hablando. Si hablamos de asginacion particionada simple su principal desventaja es que con el tiempo, la memoria se va fragmentando, es decir, los espacios disponibles no son del tamaño suficiente para asignarlos a otros procesos. Esto se debe a que con el uso, la asignacion y la liberacion de las partes en las cuales se dividen la memoria, los bloques restantes no son del suficiente tamaño ya que estan limitados por los bloques del resto de los procesos. En cambio, si hablamos de una asignacion particionada realocable, este problema se elimina mediante el proceso de compactacion. Sin embargo, este metodo tampoco es eficiente dado que el proceso de compatacion es costoso en terminos de tiempo. Por lo cual la realocacion dinamica tambien tiene desventajas sobre metodos mas avanzados como lo es la paginada por demanda o la segmentada.
+
+
+4) Nombre y explique al menos 3 condiciones por las cuales se puede generar una interrupcion por programa.
+
+    - Una interrupcion de software ejemplar es una operacion aritmetica invalida, como la es la division por 0. Como no se puede procesar dicho calculo, el programa se interrumpe.
+
+    - Una interrupcion de hardware puede ser una falla en un dispositivo de E/S. Por ejemplo, un atascamiento de hojas en una impresora creara una interrupcion del flujo del programa para notificar que ha habido un error.
+
+    - Otro tipo de interrupcion de software puede ser un acceso indebido a una seccion de memoria. Conocido tambien como Segmentation Fault. Es una interrupcion que se genera cuando se accede a una seccion de memoria que no fue asignada a nuestro proceso. Puede pasar, por ejemplo en C, cuando intentamos acceder a las posicion 5 de un vector de 3 posiciones. Como la operacion vector[5] se convierte en una operacion aritmetica de punteros, una vez compilado el programa se intenta acceder mediante el uso de un puntero a una seccion de memoria indebida.
+
+5) ¿Cuales son las ventajas del nivel 3 de la arquitectura de discos RAID con respecto al nivel 2?
+
+    - La arquitectura de nivel 3 de discos RAID cuenta con un calculo de paridad mediante un bit a traves del conjunto individual de la misma posicion en todos los discos, por lo que dicho calculo resulta mas simple que su contraparte en el nivel 2. Ademas, ante una falla, el nivel 3 de RAID no se ve afectada la performance. Sin embargo, esto viene a costas de un controlador mas complejo que aquel del nivel 2. Tambien, se usan menos discos. Mientras que el nivel 2 requiere de N + m discos, el nivel 3 requiere unicamente de N + 1 discos, lo cual reduce su costo.
+
+

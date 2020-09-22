@@ -1,0 +1,111 @@
+Jerarquia de Memoria:
+
+    - Tiene en cuenta tres factores:
+            - Capacidad
+            - Tiempo de Acceso
+            - Costo
+    
+
+    Las memorias mas costosas tienden a ser las que menor tiempo de acceso tienen. Como consecuencia su capacidad es mas baja para contrarestar sus costos elevados.
+
+
+Accesos:
+
+    - Secuencial:
+
+        - Para acceder a un dato tengo que leer todo lo previo para llegar a la ubicacion deseada. Ej: Cintas 
+
+    - Directo:
+
+        - Direccion unica para bloques basada en posicion fisica. Ej: Disco magnetico.
+
+    - Aleatorio:
+
+        - Cada posicion direccionable tiene un mecanismo de direccionamiento cableado fisicamente. Tiempo constante de acceso. Ej. Memoria Principal
+
+    - Asociativo:
+
+        - Acceso aleatorio por comparacion de patrones de bits. Ej: Caché
+
+    
+Mediciones de Performance:
+
+    - Tiempo de Acceso:
+
+            - Acceso Aleatorio: Tiempo de operacion read/write
+
+            - Otros Accesos: Tiempo para posicionarme en la informacion
+
+    - Tiempo de ciclo de Memoria:
+
+            - Acceso Aleatorio: Tiempo de acceso + tiempo hasta poder operar nuevamente
+
+    - Tasa de Transferencia:
+
+            - Acceso Aleatorio:  1/(Tiempo de Ciclo de Memoria)
+
+            - Otros casos: Tn = Tiempo Acceso + bits/(Tasa de transferencia en bits por segundo)
+
+
+Principio de Localidad de Referencia:
+
+    - Durante la ejecucion de un programa, las referencias a memoria que hace el procesador tanto como para instrucciones como para datos tienden a estar agrupados. Es el principio que usa la memoria caché cuando trae un bloque de informacion mas grande del que necesita incialmente, dado que lo mas probable es que la proxima informacion que necesite el procesador este dentro del bloque de memoria que acabamos de traer ya que los datos tienden a estar agrupados.
+
+
+
+Administracion de Memoria:
+
+
+    - El sistema operativo se encarga de administrar los recursos de la computadora. Utiliza el schedule de procesos.
+
+
+Uniprogramacion:  Permite un solo proceso a la vez en ejecucion
+
+    - Sistema simple, pero no utiliza la totalidad de los recursos de la computadora ni de la memoria.
+
+
+Multiprogramacion: Permite la ejecucion simultanea de varios procesos
+
+    - Se comparte el tiempo del cpu. Cada procesos tiene condiciones de finalizacion: Termina el trabajo, se detecta un error, requiere de un proceso de E/S o termina su tiempo asignado de CPU
+
+    
+Administracion de Memoria por asignacion particionada:
+
+
+    - Divide la memoria entre procesos en porciones iguales o de distinto tamaño
+
+    - Utiliza eficientemente la memoria que se comparte entre los procesos.
+    - Con el tiempo la memoria se fragmente, generando falta de espacio para nuevos procesos. Existen dos tipos de fragmentacion: Externa -> Particiones no usadas. Interna -> Dentro de la misma particion hay segmentos no usados
+
+
+
+Administracion de memoria por asignacion particionada realocable:
+
+    - Utiliza el swapping y los tamaños variables junto con la compactacion para evitar la fragmentacion. Realoca dinamicamente en tiempo de ejecucion.
+
+    - La compactacion es un proceso costoso.
+
+
+Administracion de memoria paginada simple:
+
+    - Se divide el address space del proceso en partes iguales llamadas paginas
+    - Se divide la memoria en partes iguales
+    - Se tiene una tabla de paginas por proceso y una lista de frames disponibles
+    - Se cargan las paginas en los frames disponibles, no necesariamente deben ser continuos en memoria
+    - Minimiza la fragmentacion interna, elimina la externa.
+    - Se requiere subir todas las paginas a memoria y el uso de estructuras de datos adicionales.
+    
+
+Administracion de memoria paginada por demanda:
+
+    - Solo se cargan las paginas necesarias para un proceso.
+    - Acceder a una pagina no cargada resulta en un Page Fault
+
+    - No es necesario cargar todas las paginas, por lo cual maximiza el uso de memoria al permitir mas procesos.
+    - Mayor complejidad para implementar el reemplazo de paginas
+
+
+
+
+
+
